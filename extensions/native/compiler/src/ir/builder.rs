@@ -416,15 +416,19 @@ impl<C: Config> Builder<C> {
     }
 
     pub fn hint_var(&mut self) -> Var<C::N> {
+        // ptr is a pointer for array which length = 1, (element size = 1) in heap
         let ptr = self.alloc(RVar::one(), 1);
         // Prepare data for hinting.
         self.operations.push(DslIr::HintFelt());
+        // Index to the array above?
         let index = MemIndex {
             index: RVar::zero(),
             offset: 0,
             size: 1,
         };
+        // store the hint word in the array above, which index is 0
         self.operations.push(DslIr::StoreHintWord(ptr, index));
+        // read the hint word into a Var v
         let v: Var<C::N> = self.uninit();
         self.load(v, ptr, index);
         v

@@ -26,7 +26,7 @@ impl<C: Config> DigestVal<C> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum DigestVariable<C: Config> {
     Felt(Array<C, Felt<C::F>>),
     Var(Array<C, Var<C::N>>),

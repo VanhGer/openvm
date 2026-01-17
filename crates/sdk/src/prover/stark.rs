@@ -19,6 +19,7 @@ use crate::{
     prover::{agg::AggStarkProver, app::AppProver},
     StdIn, F, SC,
 };
+use crate::codec::Encode;
 
 /// This prover contains an [`app_prover`](StarkProver::app_prover) internally.
 pub struct StarkProver<E, VB, NativeBuilder>
@@ -99,7 +100,40 @@ where
 
     pub fn prove(&mut self, input: StdIn) -> Result<VmStarkProof<SC>, VirtualMachineError> {
         let app_proof = self.app_prover.prove(input)?;
+        println!("app proofs: number of proof: {:?}, ", app_proof.per_segment.len());
+        let app_proof_vec = app_proof.encode_to_vec().unwrap();
+        println!("app proof size: {:?}", app_proof_vec.len());
+        for i in 0..app_proof.per_segment.len() {
+            let segment_proof_vec = app_proof.per_segment[i].encode_to_vec().unwrap();
+            println!("app segment {:?} proof size: {:?}", i, segment_proof_vec.len());
+        }
+        let app_proof_user_pvs_vec = app_proof.user_public_values.encode_to_vec().unwrap();
+        println!("app proof user public values size: {:?}", app_proof_user_pvs_vec.len());
+
         let leaf_proofs = self.agg_prover.generate_leaf_proofs(&app_proof)?;
+        println!("leaf proofs: number of proof: {:?}, ", leaf_proofs.len());
+        for i in 0..leaf_proofs.len() {
+            let segment_proof_vec = leaf_proofs[i].encode_to_vec().unwrap();
+            println!("leaf segment {:?} proof size: {:?}", i, segment_proof_vec.len());
+        }
+
+        let app_prover_commitment = self.app_prover.app_program_commit();
+        let leaf_verifier_commitment = self.app_prover.leaf_verifier_program_commit();
+
+        let leaf_prover_commitment = self.agg_prover.leaf_prover.program_commitment();
+        let internal_prover_commitment = self.agg_prover.internal_prover.program_commitment();
+        let root_prover_commitment = self.agg_prover.root_prover.inner.program_commitment();
+
+        println!("app prover commitment: {:?}", app_prover_commitment);
+        println!("leaf verifier commitment: {:?}", leaf_verifier_commitment);
+
+        println!("leaf prover commitment: {:?}", leaf_prover_commitment);
+        println!("internal prover commitment: {:?}", internal_prover_commitment);
+        println!("root prover commitment: {:?}", root_prover_commitment);
+
+        // Err(VirtualMachineError::ProgramIsNotCommitted)
+
+
         self.agg_prover
             .aggregate_leaf_proofs(leaf_proofs, app_proof.user_public_values.public_values)
     }

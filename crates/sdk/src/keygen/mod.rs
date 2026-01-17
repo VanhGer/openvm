@@ -484,6 +484,16 @@ impl Halo2ProvingKey {
         let dummy_root_proof = agg_pk
             .root_verifier_pk
             .generate_dummy_root_proof(dummy_internal_proof)?;
+
+        let proof_size = bincode::serialize(&dummy_root_proof).unwrap();
+        println!("Dummy Root proof size: {} bytes", proof_size.len());
+
+        for i in 0..dummy_root_proof.per_air.len() {
+            let air_id = dummy_root_proof.per_air[i].air_id;
+            let degree = dummy_root_proof.per_air[i].degree;
+            println!("dummy root: air: {}, degree: {}", air_id, degree);
+        }
+
         let verifier = agg_pk.root_verifier_pk.keygen_static_verifier(
             &reader.read_params(halo2_config.verifier_k),
             dummy_root_proof,

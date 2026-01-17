@@ -46,7 +46,7 @@ use crate::{
 pub struct VmCommittedExe<SC: StarkGenericConfig> {
     /// Raw executable.
     pub exe: Arc<VmExe<Val<SC>>>,
-    program_commitment: Com<SC>,
+    pub program_commitment: Com<SC>,
     /// Program ROM as cached trace matrix.
     pub trace: Arc<RowMajorMatrix<Val<SC>>>,
     pub prover_data: Arc<PcsProverData<SC>>,

@@ -140,6 +140,8 @@ where
         let pre_hash = builder.constant(m_advice.pre_hash.clone());
         challenger.observe_digest(builder, pre_hash);
         let air_ids = proof.get_air_ids(builder);
+        let num_airs = air_ids.len();
+        println!("rap num airs: {:?}", num_airs.value());
         let num_airs = cast_usize_to_felt(builder, air_ids.len());
         challenger.observe(builder, num_airs);
         iter_zip!(builder, air_ids).for_each(|ptr_vec, builder| {
@@ -177,7 +179,8 @@ where
             let num_airs = num_airs.value();
             let perm = (0..num_airs).map(|i| builder.eval(RVar::from(i))).collect();
             &builder.vec(perm)
-        } else {
+        } else
+        {
             builder.assert_usize_eq(air_perm_by_height.len(), num_airs);
             // Assert that each index in `air_perm_by_height` is unique and in range [0, num_airs).
             let mask: Array<_, Usize<_>> = builder.dyn_array(num_airs);
@@ -386,6 +389,7 @@ where
             builder.set_value(&trace_points, RVar::one(), zeta_next);
 
             let log_quotient_degree = RVar::from(advice.log_quotient_degree);
+            // 2^log_quotient_degree
             let quotient_degree =
                 RVar::from(builder.sll::<Usize<_>>(RVar::one(), log_quotient_degree));
             let log_quotient_size = builder.eval_expr(log_degree + log_quotient_degree);

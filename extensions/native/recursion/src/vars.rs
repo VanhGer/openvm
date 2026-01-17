@@ -7,13 +7,13 @@ use crate::{digest::DigestVariable, fri::types::FriProofVariable, OUTER_DIGEST_S
 
 pub type OuterDigestVariable<C> = [Var<<C as Config>::N>; OUTER_DIGEST_SIZE];
 
-#[derive(DslVariable, Clone)]
+#[derive(DslVariable, Clone, Debug)]
 pub struct HintSlice<C: Config> {
     pub length: Usize<C::N>,
     pub id: Usize<C::N>,
 }
 
-#[derive(DslVariable, Clone)]
+#[derive(DslVariable, Clone, Debug)]
 pub struct StarkProofVariable<C: Config> {
     pub commitments: CommitmentsVariable<C>,
     pub opening: OpeningProofVariable<C>,
@@ -24,6 +24,7 @@ pub struct StarkProofVariable<C: Config> {
 }
 
 #[derive(DslVariable, Clone)]
+#[derive(Debug)]
 pub struct AirProofDataVariable<C: Config> {
     pub air_id: Usize<C::N>,
     /// height of trace matrix.
@@ -96,20 +97,21 @@ pub struct TraceWidthVariable<C: Config> {
 }
 
 #[derive(DslVariable, Clone)]
+#[derive(Debug)]
 pub struct CommitmentsVariable<C: Config> {
     pub main_trace: Array<C, DigestVariable<C>>,
     pub after_challenge: Array<C, DigestVariable<C>>,
     pub quotient: DigestVariable<C>,
 }
 
-#[derive(DslVariable, Clone)]
+#[derive(DslVariable, Clone, Debug)]
 pub struct OpeningProofVariable<C: Config> {
     pub proof: FriProofVariable<C>,
     pub values: OpenedValuesVariable<C>,
 }
 
 #[allow(clippy::type_complexity)]
-#[derive(DslVariable, Clone)]
+#[derive(DslVariable, Clone, Debug)]
 pub struct OpenedValuesVariable<C: Config> {
     // For each preprocessed commitment, the opened values
     pub preprocessed: Array<C, AdjacentOpenedValuesVariable<C>>,

@@ -1,3 +1,4 @@
+use core::fmt::Debug;
 pub use builder::*;
 pub use collections::*;
 pub use instructions::*;
@@ -24,7 +25,7 @@ mod utils;
 mod var;
 mod verify_batch;
 
-pub trait Config: Clone + Default {
+pub trait Config: Clone + Default + Debug {
     type N: PrimeField;
     type F: PrimeField32 + TwoAdicField;
     type EF: ExtensionField<Self::F> + TwoAdicField;

@@ -24,6 +24,8 @@ use openvm_stark_backend::{
     AirRef, Chip,
 };
 use openvm_stark_sdk::{p3_baby_bear::BabyBear, utils::create_seeded_rng};
+use openvm_stark_sdk::config::FriParameters;
+use openvm_stark_sdk::utils::ProofInputForTest;
 use rand::Rng;
 
 use crate::{
@@ -112,6 +114,42 @@ where
     let air_ctx = chip.generate_proving_ctx(random_records);
 
     ((Arc::new(air), air_ctx), (bitwise_chip.air, bitwise_chip))
+}
+
+
+// #[cfg(all(feature = "static-verifier", not(feature = "cuda")))]
+#[test]
+fn sha256_static_test_vjp() {
+    use openvm_native_recursion::halo2::testing_utils::run_static_verifier_test;
+    use openvm_stark_sdk::config::baby_bear_poseidon2_root::{
+        BabyBearPoseidon2RootConfig,
+    };
+    const LOG_BLOWUP: usize = 3;
+    let (sha256, bitwise) = create_air_with_air_ctx();
+    let bitwise_air_ref = Arc::new(bitwise.0);
+
+    let mut rng = create_seeded_rng();
+    let len = rng.gen_range(1..100);
+    let random_records = (0..len)
+        .map(|i| {
+            (
+                array::from_fn(|_| rng.gen::<u8>()),
+                rng.gen::<bool>() || i == len - 1,
+            )
+        })
+        .collect::<Vec<([u8; 64], bool)>>();
+    let bitwise_ctx = bitwise.1.generate_proving_ctx(random_records);
+
+
+    let sha_program_stark = ProofInputForTest::<BabyBearPoseidon2RootConfig> {
+        airs: vec![sha256.0, bitwise_air_ref],
+        per_air: vec![sha256.1, bitwise_ctx],
+    };
+    run_static_verifier_test(
+        sha_program_stark,
+        FriParameters::new_for_testing(LOG_BLOWUP),
+    );
+
 }
 
 #[test]

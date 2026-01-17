@@ -148,7 +148,7 @@ fn test_fibonacci_program_verify() {
 
 #[cfg(all(feature = "static-verifier", not(feature = "cuda")))]
 #[test]
-#[ignore = "needs params files"]
+// #[ignore = "needs params files"]
 fn test_fibonacci_program_halo2_verify() {
     use openvm_native_recursion::halo2::testing_utils::run_static_verifier_test;
     use openvm_stark_sdk::config::baby_bear_poseidon2_root::{

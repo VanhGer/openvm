@@ -288,6 +288,7 @@ pub fn verify_two_adic_pcs<C: Config>(
                     let is_init: Usize<C::N> = builder.eval(C::N::ZERO);
                     iter_zip!(builder, mat_points, mat_values).for_each(|ptr_vec, builder| {
                         let z: Ext<C::F, C::EF> = builder.iter_ptr_get(&mat_points, ptr_vec[0]);
+                        // evaluation at z of trace poly
                         let ps_at_z = builder.iter_ptr_get(&mat_values, ptr_vec[1]);
 
                         builder.cycle_tracker_start("single-reduced-opening-eval");

@@ -31,7 +31,7 @@ impl<C: Config> FriConfigVariable<C> {
     }
 }
 
-#[derive(DslVariable, Clone)]
+#[derive(DslVariable, Clone, Debug)]
 pub struct FriProofVariable<C: Config> {
     pub commit_phase_commits: Array<C, DigestVariable<C>>,
     pub query_proofs: Array<C, FriQueryProofVariable<C>>,
@@ -39,13 +39,13 @@ pub struct FriProofVariable<C: Config> {
     pub pow_witness: Felt<C::F>,
 }
 
-#[derive(DslVariable, Clone)]
+#[derive(DslVariable, Clone, Debug)]
 pub struct FriQueryProofVariable<C: Config> {
     pub input_proof: Array<C, BatchOpeningVariable<C>>,
     pub commit_phase_openings: Array<C, FriCommitPhaseProofStepVariable<C>>,
 }
 
-#[derive(DslVariable, Clone)]
+#[derive(DslVariable, Clone, Debug)]
 pub struct FriCommitPhaseProofStepVariable<C: Config> {
     pub sibling_value: Ext<C::F, C::EF>,
     pub opening_proof: HintSlice<C>,
@@ -62,7 +62,7 @@ pub struct DimensionsVariable<C: Config> {
     pub log_height: Usize<C::N>,
 }
 
-#[derive(DslVariable, Clone)]
+#[derive(DslVariable, Clone, Debug)]
 pub struct BatchOpeningVariable<C: Config> {
     pub opened_values: HintSlice<C>,
     pub opening_proof: HintSlice<C>,

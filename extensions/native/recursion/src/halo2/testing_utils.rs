@@ -31,6 +31,16 @@ pub fn run_static_verifier_test(
     let engine = BabyBearPoseidon2RootEngine::new(fri_params);
     let vparams = test_proof_input.run_test(&engine).unwrap();
 
+    let proof = vparams.data.proof.clone();
+    let air_num = proof.per_air.len();
+    println!("air num: {}", air_num);
+
+    let degrees = proof.per_air.iter().map(|air| air.degree).collect::<Vec<_>>();
+    println!("degrees: {:?}", degrees);
+
+    let vk = vparams.data.vk.clone();
+    let vk_air_num = vk.inner.per_air.len();
+    println!("vk air num: {}", vk_air_num);
     info_span.exit();
 
     // Build verification program in eDSL.
@@ -58,5 +68,6 @@ pub fn run_static_verifier_test(
     vparams.data.proof.write(&mut witness);
     let static_verifier_snark = stark_verifier_circuit.prove(params, witness, false);
     info_span.exit();
+
     (stark_verifier_circuit, static_verifier_snark)
 }

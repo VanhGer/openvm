@@ -128,6 +128,7 @@ impl<C: Config, I: VecAutoHintable + Hintable<C>> Hintable<C> for Vec<I> {
     type HintVariable = Array<C, I::HintVariable>;
 
     fn read(builder: &mut Builder<C>) -> Self::HintVariable {
+        // create a hint variable for the length of the array
         let len = builder.hint_var();
         let arr = builder.dyn_array(len);
         iter_zip!(builder, arr).for_each(|idx_vec, builder| {

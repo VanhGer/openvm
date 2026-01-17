@@ -25,7 +25,7 @@ pub struct RootVerifierLocalProver {
     /// The proving key in `inner` should always have ordering of AIRs in the sorted order by fixed
     /// trace heights outside of the `prove` function.
     // This is CPU-only for now because it uses RootSC
-    inner: VmInstance<BabyBearPoseidon2RootEngine, NativeCpuBuilder>,
+    pub inner: VmInstance<BabyBearPoseidon2RootEngine, NativeCpuBuilder>,
     /// The constant trace heights, ordered by AIR ID (the original ordering from VmConfig).
     #[getset(get = "pub")]
     fixed_air_heights: Vec<u32>,

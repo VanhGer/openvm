@@ -624,6 +624,7 @@ where
         // ATTENTION: this must agree with `num_memory_airs`
         let num_adapters = log2_strict_usize(system_config.memory_config.max_access_adapter_n);
         assert_eq!(adapter_offset + num_adapters, system_config.num_airs());
+        // create arena for trace?
         let access_adapter_arena_size_bound = records::arena_size_bound(
             &trace_heights[adapter_offset..adapter_offset + num_adapters],
         );

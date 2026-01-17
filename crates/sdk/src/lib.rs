@@ -474,6 +474,13 @@ where
     ) -> Result<StarkProver<E, VB, NativeBuilder>, SdkError> {
         let app_exe = self.convert_to_exe(app_exe)?;
         let app_pk = self.app_pk();
+
+        let leaf_program = app_pk.leaf_committed_exe.exe.program.clone();
+        println!("leaf program instructions len: {:?}", leaf_program.instructions_and_debug_infos.len());
+        println!("leaf program pc_base: {:?}", leaf_program.pc_base);
+        let leaf_program_commitment = app_pk.leaf_committed_exe.program_commitment;
+        println!("leaf program commitment: {:?}", leaf_program_commitment);
+
         let agg_pk = self.agg_pk();
         let stark_prover = StarkProver::<E, _, _>::new(
             self.app_vm_builder.clone(),
@@ -644,6 +651,16 @@ where
     #[cfg(feature = "evm-prove")]
     pub fn halo2_pk(&self) -> &Halo2ProvingKey {
         let (agg_pk, dummy_internal_proof) = self.agg_pk_and_dummy_internal_proof();
+
+        let dummy_proof_size = bincode::serialize(&dummy_internal_proof).unwrap();
+        println!("Dummy Internal proof size: {} bytes", dummy_proof_size.len());
+
+        for i in 0..dummy_internal_proof.per_air.len() {
+            let air_id = dummy_internal_proof.per_air[i].air_id;
+            let degree = dummy_internal_proof.per_air[i].degree;
+            println!("air: {}, degree: {}", air_id, degree);
+        }
+
         // TODO[jpw]: use `get_or_try_init` once it is stable
         self.halo2_pk.get_or_init(|| {
             Halo2ProvingKey::keygen(

@@ -7135,6 +7135,7 @@ dependencies = [
 name = "openvm-sha256-air"
 version = "1.4.2"
 dependencies = [
+ "bincode 1.3.3",
  "openvm-circuit",
  "openvm-circuit-primitives",
  "openvm-native-recursion",
@@ -7142,6 +7143,7 @@ dependencies = [
  "openvm-stark-sdk",
  "rand 0.8.5",
  "sha2 0.10.9",
+ "snark-verifier-sdk",
 ]
 
 [[package]]

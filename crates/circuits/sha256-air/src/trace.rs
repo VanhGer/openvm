@@ -481,6 +481,7 @@ pub fn generate_trace<F: PrimeField32>(
 ) -> RowMajorMatrix<F> {
     let non_padded_height = records.len() * SHA256_ROWS_PER_BLOCK;
     let height = next_power_of_two_or_zero(non_padded_height);
+    println!("non_padded_height: {non_padded_height}, height: {height}");
     let mut values = F::zero_vec(height * width);
 
     struct BlockContext {

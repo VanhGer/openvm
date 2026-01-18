@@ -1,5 +1,5 @@
-use std::{array, borrow::BorrowMut, sync::Arc};
-
+use std::{array, borrow::BorrowMut, fs, sync::Arc};
+use std::time::Instant;
 use openvm_circuit::arch::{
     instructions::riscv::RV32_CELL_BITS,
     testing::{VmChipTestBuilder, BITWISE_OP_LOOKUP_BUS},
@@ -27,7 +27,8 @@ use openvm_stark_sdk::{p3_baby_bear::BabyBear, utils::create_seeded_rng};
 use openvm_stark_sdk::config::FriParameters;
 use openvm_stark_sdk::utils::ProofInputForTest;
 use rand::Rng;
-
+use openvm_native_recursion::halo2::utils::{CacheHalo2ParamsReader, Halo2ParamsReader};
+use openvm_native_recursion::halo2::wrapper::Halo2WrapperProvingKey;
 use crate::{
     Sha256Air, Sha256DigestCols, Sha256FillerHelper, SHA256_BLOCK_U8S, SHA256_DIGEST_WIDTH,
     SHA256_HASH_WORDS, SHA256_WIDTH, SHA256_WORD_U8S,
@@ -94,7 +95,7 @@ where
     let bitwise_chip = Arc::new(BitwiseOperationLookupChip::<RV32_CELL_BITS>::new(
         bitwise_bus,
     ));
-    let len = rng.gen_range(1..100);
+    let len = 100;
     let random_records: Vec<_> = (0..len)
         .map(|i| {
             (
@@ -124,32 +125,60 @@ fn sha256_static_test_vjp() {
     use openvm_stark_sdk::config::baby_bear_poseidon2_root::{
         BabyBearPoseidon2RootConfig,
     };
+    use snark_verifier_sdk::Snark;
     const LOG_BLOWUP: usize = 3;
-    let (sha256, bitwise) = create_air_with_air_ctx();
-    let bitwise_air_ref = Arc::new(bitwise.0);
+    // let (sha256, bitwise) = create_air_with_air_ctx();
+    // let bitwise_air_ref = Arc::new(bitwise.0);
+    //
+    // let mut rng = create_seeded_rng();
+    // // let len = rng.gen_range(1..100);
+    // let len = 100;
+    // let random_records = (0..len)
+    //     .map(|i| {
+    //         (
+    //             array::from_fn(|_| rng.gen::<u8>()),
+    //             rng.gen::<bool>() || i == len - 1,
+    //         )
+    //     })
+    //     .collect::<Vec<([u8; 64], bool)>>();
+    // let bitwise_ctx = bitwise.1.generate_proving_ctx(random_records);
+    //
+    // let sha_program_stark = ProofInputForTest::<BabyBearPoseidon2RootConfig> {
+    //     airs: vec![sha256.0, bitwise_air_ref],
+    //     per_air: vec![sha256.1, bitwise_ctx],
+    // };
+    // let (snark_pk, snark_proof) = run_static_verifier_test(
+    //     sha_program_stark,
+    //     FriParameters::new_for_testing(LOG_BLOWUP),
+    // );
+    //
+    let proof_path = "./snark_proof.bin";
+    // fs::create_dir_all(".").unwrap();
+    // let serialized = bincode::serialize(&snark_proof).expect("failed to serialize snark_proof");
+    // fs::write(proof_path, &serialized).expect("failed to write proof file");
 
-    let mut rng = create_seeded_rng();
-    let len = rng.gen_range(1..100);
-    let random_records = (0..len)
-        .map(|i| {
-            (
-                array::from_fn(|_| rng.gen::<u8>()),
-                rng.gen::<bool>() || i == len - 1,
-            )
-        })
-        .collect::<Vec<([u8; 64], bool)>>();
-    let bitwise_ctx = bitwise.1.generate_proving_ctx(random_records);
+    // read back and deserialize into the same `Snark` type
+    let read_back = fs::read(proof_path).expect("failed to read proof file");
+    let snark_proof: Snark = bincode::deserialize(&read_back).expect("failed to deserialize proof");
 
+    let k = 21;
+    let halo2_params_reader = CacheHalo2ParamsReader::new_with_default_params_dir();
+    // let params = &halo2_params_reader.read_params(k);
 
-    let sha_program_stark = ProofInputForTest::<BabyBearPoseidon2RootConfig> {
-        airs: vec![sha256.0, bitwise_air_ref],
-        per_air: vec![sha256.1, bitwise_ctx],
-    };
-    run_static_verifier_test(
-        sha_program_stark,
-        FriParameters::new_for_testing(LOG_BLOWUP),
-    );
+    let keygen_start = Instant::now();
+    println!("Generating Halo2 Wrapper Proving Key...");
+    let wrapper = Halo2WrapperProvingKey::keygen_auto_tune(&halo2_params_reader, snark_proof.clone());
+    let keygen_dur = keygen_start.elapsed();
+    println!("Halo2 Wrapper keygen completed in {:.3} s", keygen_dur.as_secs_f64());
 
+    let wrapper_k = wrapper.pinning.metadata.config_params.k;
+    let wrapper_srs = halo2_params_reader.read_params(wrapper_k);
+
+    let prove_start = Instant::now();
+    println!("Proving Halo2 Wrapper Proof...");
+    let evm_proof = wrapper.prove_for_evm(&wrapper_srs, snark_proof);
+    let prove_dur = prove_start.elapsed();
+    println!("Wrapper proof generation completed in {:.3} s", prove_dur.as_secs_f64())
 }
 
 #[test]

@@ -32,6 +32,8 @@ pub fn generate_halo2_verifier_proving_key(
     let mut witness = Witness::default();
     proof.write(&mut witness);
     let dsl_operations = build_circuit_verify_operations(advice, fri_params, proof);
+    let num_dsl = dsl_operations.operations.vec.len();
+    println!("num dsl: {:?}", num_dsl);
     Halo2VerifierProvingKey {
         pinning: Halo2Prover::keygen(params, dsl_operations.clone(), witness),
         dsl_ops: dsl_operations,

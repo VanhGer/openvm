@@ -17,6 +17,8 @@ pub mod witness;
 #[cfg(feature = "static-verifier")]
 pub mod halo2;
 
+pub mod gnark;
+
 #[cfg(any(test, feature = "test-utils"))]
 pub mod testing_utils;
 #[cfg(test)]

@@ -3,7 +3,7 @@ use openvm_stark_backend::proof::Proof;
 use openvm_stark_sdk::config::{
     baby_bear_poseidon2_root::BabyBearPoseidon2RootConfig, FriParameters,
 };
-
+use openvm_native_compiler::constraints::{Constraint, ConstraintCompiler};
 use crate::{
     challenger::multi_field32::MultiField32ChallengerVariable, config::outer::OuterConfig,
     fri::TwoAdicFriPcsVariable, halo2::DslOperations, stark::StarkVerifier,
@@ -31,4 +31,28 @@ pub fn build_circuit_verify_operations(
         operations: builder.operations,
         num_public_values: 0,
     }
+}
+
+pub fn build_circuit_verify_constraints(
+    advice: MultiStarkVerificationAdvice<OuterConfig>,
+    fri_params: &FriParameters,
+    proof: &Proof<BabyBearPoseidon2RootConfig>,
+) -> Vec<Constraint> {
+    let mut builder = Builder::<OuterConfig>::default();
+    builder.flags.static_only = true;
+
+    builder.cycle_tracker_start("VerifierProgram");
+    let input = proof.read(&mut builder);
+
+    let pcs = TwoAdicFriPcsVariable {
+        config: const_fri_config(&mut builder, fri_params),
+    };
+    StarkVerifier::verify::<MultiField32ChallengerVariable<_>>(&mut builder, &pcs, &advice, &input);
+
+    builder.cycle_tracker_end("VerifierProgram");
+
+    let mut backend = ConstraintCompiler::<OuterConfig>::default();
+    let operations = backend.emit(builder.operations);
+
+    operations
 }

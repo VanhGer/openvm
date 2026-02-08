@@ -13,6 +13,8 @@ use crate::{
 #[cfg(feature = "halo2-compiler")]
 pub mod halo2;
 
+pub mod gnark;
+
 pub mod opcodes;
 
 /// A constraint is an operation and a list of nested arguments.
@@ -110,7 +112,7 @@ impl<C: Config + Debug> ConstraintCompiler<C> {
                 DslIr::AddVI(a, b, c) => {
                     let tmp = self.alloc_v(&mut constraints, c);
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::AddV,
+                        opcode: ConstraintOpcode::AddVI,
                         args: vec![vec![a.id()], vec![b.id()], vec![tmp]],
                     });
                 }
@@ -121,7 +123,7 @@ impl<C: Config + Debug> ConstraintCompiler<C> {
                 DslIr::AddFI(a, b, c) => {
                     let tmp = self.alloc_f(&mut constraints, c);
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::AddF,
+                        opcode: ConstraintOpcode::AddFI,
                         args: vec![vec![a.id()], vec![b.id()], vec![tmp]],
                     });
                 }
@@ -136,21 +138,21 @@ impl<C: Config + Debug> ConstraintCompiler<C> {
                 DslIr::AddEFI(a, b, c) => {
                     let tmp = self.alloc_f(&mut constraints, c);
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::AddEF,
+                        opcode: ConstraintOpcode::AddEFI,
                         args: vec![vec![a.id()], vec![b.id()], vec![tmp]],
                     });
                 }
                 DslIr::AddEI(a, b, c) => {
                     let tmp = self.alloc_e(&mut constraints, c);
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::AddE,
+                        opcode: ConstraintOpcode::AddEI,
                         args: vec![vec![a.id()], vec![b.id()], vec![tmp]],
                     });
                 }
                 DslIr::AddEFFI(a, b, c) => {
                     let tmp = self.alloc_e(&mut constraints, c);
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::AddEF,
+                        opcode: ConstraintOpcode::AddEFFI,
                         args: vec![vec![a.id()], vec![tmp], vec![b.id()]],
                     });
                 }
@@ -173,17 +175,28 @@ impl<C: Config + Debug> ConstraintCompiler<C> {
                 DslIr::SubEI(a, b, c) => {
                     let tmp = self.alloc_e(&mut constraints, c);
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::SubE,
+                        opcode: ConstraintOpcode::SubEI,
                         args: vec![vec![a.id()], vec![b.id()], vec![tmp]],
                     });
                 }
+                DslIr::SubVIN(a, b, c) => {
+                    let tmp = self.alloc_v(&mut constraints, b);
+                    constraints.push(Constraint {
+                        opcode: ConstraintOpcode::SubVIN,
+                        args: vec![vec![a.id()], vec![tmp], vec![c.id()]],
+                    });
+                },
                 DslIr::SubEIN(a, b, c) => {
                     let tmp = self.alloc_e(&mut constraints, b);
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::SubE,
+                        opcode: ConstraintOpcode::SubEIN,
                         args: vec![vec![a.id()], vec![tmp], vec![c.id()]],
                     });
                 }
+                DslIr::SubEFI(a, b, c) => {
+                    let tmp = self
+                },
+
                 DslIr::MulV(a, b, c) => constraints.push(Constraint {
                     opcode: ConstraintOpcode::MulV,
                     args: vec![vec![a.id()], vec![b.id()], vec![c.id()]],
@@ -341,6 +354,8 @@ impl<C: Config + Debug> ConstraintCompiler<C> {
                         vec![a[3].id()],
                     ],
                 }),
+                DslIr::CycleTrackerStart(..) => {},
+                DslIr::CycleTrackerEnd(..) => {}
                 _ => panic!("unsupported {:?}", instruction),
             };
         }

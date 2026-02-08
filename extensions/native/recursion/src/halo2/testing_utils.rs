@@ -7,8 +7,11 @@ use openvm_stark_sdk::{
     engine::StarkFriEngine,
     utils::ProofInputForTest,
 };
+use openvm_stark_sdk::config::baby_bear_poseidon2::BabyBearPoseidon2Engine;
 use snark_verifier_sdk::Snark;
-
+use openvm_circuit::utils::air_test_impl;
+use openvm_native_circuit::{test_native_config, NativeCpuBuilder};
+use openvm_native_compiler::conversion::CompilerOptions;
 use crate::{
     config::outer::new_from_outer_multi_vk,
     halo2::{
@@ -17,6 +20,7 @@ use crate::{
     },
     witness::Witnessable,
 };
+use crate::testing_utils::inner::build_verification_program;
 
 pub fn run_static_verifier_test(
     mut test_proof_input: ProofInputForTest<BabyBearPoseidon2RootConfig>,

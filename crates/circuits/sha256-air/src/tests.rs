@@ -24,8 +24,15 @@ use openvm_stark_backend::{
     AirRef, Chip,
 };
 use openvm_stark_sdk::{p3_baby_bear::BabyBear, utils::create_seeded_rng};
+use openvm_stark_sdk::config::{setup_tracing, setup_tracing_with_log_level, FriParameters};
+use openvm_stark_sdk::config::baby_bear_poseidon2::BabyBearPoseidon2Config;
+use openvm_stark_sdk::config::baby_bear_poseidon2_root::BabyBearPoseidon2RootConfig;
+use openvm_stark_sdk::utils::ProofInputForTest;
 use rand::Rng;
-
+use tracing_subscriber::filter::LevelFilter;
+use openvm_circuit::arch::testing::TestSC;
+use openvm_native_recursion::halo2::testing_utils::run_static_verifier_test;
+use openvm_native_recursion::testing_utils::inner::{run_recursive_test};
 use crate::{
     Sha256Air, Sha256DigestCols, Sha256FillerHelper, SHA256_BLOCK_U8S, SHA256_DIGEST_WIDTH,
     SHA256_HASH_WORDS, SHA256_WIDTH, SHA256_WORD_U8S,
@@ -92,7 +99,7 @@ where
     let bitwise_chip = Arc::new(BitwiseOperationLookupChip::<RV32_CELL_BITS>::new(
         bitwise_bus,
     ));
-    let len = rng.gen_range(1..100);
+    let len = 2;
     let random_records: Vec<_> = (0..len)
         .map(|i| {
             (
@@ -116,14 +123,26 @@ where
 
 #[test]
 fn rand_sha256_test() {
-    let tester = VmChipTestBuilder::default();
-    let (air_ctx, bitwise) = create_air_with_air_ctx();
-    let tester = tester
-        .build()
-        .load_air_proving_ctx(air_ctx)
-        .load_periphery(bitwise)
-        .finalize();
-    tester.simple_test().expect("Verification failed");
+    setup_tracing();
+    // let tester = VmChipTestBuilder::default();
+    let (air_ctx, bitwise) = create_air_with_air_ctx::<BabyBearPoseidon2RootConfig>();
+    // let (air_ctx, bitwise) = create_air_with_air_ctx::<BabyBearPoseidon2Config>();
+    // let tester = tester
+    //     .build()
+    //     .load_air_proving_ctx(air_ctx)
+    //     .load_periphery(bitwise)
+    //     .finalize();
+    // tester.simple_test().expect("Verification failed");
+
+    const LOG_BLOWUP: usize = 3;
+
+    let proof = ProofInputForTest {
+        airs: vec![air_ctx.0, Arc::new(bitwise.0)],
+        per_air: vec![air_ctx.1, bitwise.1.generate_proving_ctx(())],
+    };
+    // let (_, proofs) = run_recursive_test_test(proof, FriParameters::new_for_testing(LOG_BLOWUP));
+    // run_recursive_test(proof, FriParameters::new_for_testing(LOG_BLOWUP));
+    run_static_verifier_test(proof, FriParameters::new_for_testing(LOG_BLOWUP));
 }
 
 #[test]

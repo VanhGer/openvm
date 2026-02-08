@@ -10,9 +10,12 @@ openvm-stark-backend = { workspace = true }
 sha2 = { version = "0.10", features = ["compress"] }
 rand.workspace = true
 
+tracing-subscriber = {workspace = true, features = ["std", "env-filter"]}
+
 [dev-dependencies]
 openvm-stark-sdk = { workspace = true }
 openvm-circuit = { workspace = true, features = ["test-utils"] }
+openvm-native-recursion = {workspace = true, features = ["static-verifier", "test-utils"]}
 
 [features]
 default = ["parallel"]

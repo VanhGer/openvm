@@ -29,11 +29,15 @@ once_cell = { workspace = true, optional = true, features = ["std"] }
 metrics = { workspace = true, optional = true }
 cfg-if = { workspace = true }
 serde_with = { workspace = true, optional = true, features = ["hex"] }
+tempfile = "3.14.0"
+
 
 [dev-dependencies]
 openvm-native-recursion = { workspace = true, features = ["test-utils"] }
-tempfile = "3.14.0"
 bitcode = { workspace = true }
+
+[build-dependencies]
+bindgen = "0.72.1"
 
 [features]
 default = ["parallel", "jemalloc"]

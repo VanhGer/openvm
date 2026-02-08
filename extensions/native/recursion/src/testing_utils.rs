@@ -64,6 +64,7 @@ pub mod inner {
 
         let compiler_options = CompilerOptions::default();
         let (program, witness_stream) = build_verification_program(vparams, compiler_options);
+        println!("program: {:#?}", program.len());
         air_test_impl::<BabyBearPoseidon2Engine, _>(
             fri_params,
             NativeCpuBuilder,

@@ -43,5 +43,10 @@ fn run_recursive_test(mut test_proof_input: ProofInputForTest<BabyBearPoseidon2R
     let mut witness = Witness::default();
     proof.write(&mut witness);
     let operations = build_circuit_verify_operations(advice, &vparams.fri_params, &proof);
+
+    println!("ops{:?}", operations.operations.vec.len());
+    println!("vars{:?}", witness.vars.len());
+    println!("felts{:?}", witness.felts.len());
+    println!("exts{:?}", witness.exts.len());
     Halo2Prover::mock(20, operations, witness);
 }

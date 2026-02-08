@@ -15,7 +15,7 @@ use tracing::Level;
 use crate::tests::{fibonacci_test_proof_input, interaction_test_proof_input};
 
 #[test]
-fn test_fibonacci() {
+fn test_fibonacci_gnark() {
     crate::gnark::tests::stark::run_recursive_test(fibonacci_test_proof_input::<
         BabyBearPoseidon2RootConfig,
     >(16))

@@ -112,7 +112,7 @@ impl<C: Config + Debug> ConstraintCompiler<C> {
                 DslIr::AddVI(a, b, c) => {
                     let tmp = self.alloc_v(&mut constraints, c);
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::AddVI,
+                        opcode: ConstraintOpcode::AddV,
                         args: vec![vec![a.id()], vec![b.id()], vec![tmp]],
                     });
                 }
@@ -123,7 +123,7 @@ impl<C: Config + Debug> ConstraintCompiler<C> {
                 DslIr::AddFI(a, b, c) => {
                     let tmp = self.alloc_f(&mut constraints, c);
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::AddFI,
+                        opcode: ConstraintOpcode::AddF,
                         args: vec![vec![a.id()], vec![b.id()], vec![tmp]],
                     });
                 }
@@ -138,21 +138,21 @@ impl<C: Config + Debug> ConstraintCompiler<C> {
                 DslIr::AddEFI(a, b, c) => {
                     let tmp = self.alloc_f(&mut constraints, c);
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::AddEFI,
+                        opcode: ConstraintOpcode::AddEF,
                         args: vec![vec![a.id()], vec![b.id()], vec![tmp]],
                     });
                 }
                 DslIr::AddEI(a, b, c) => {
                     let tmp = self.alloc_e(&mut constraints, c);
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::AddEI,
+                        opcode: ConstraintOpcode::AddE,
                         args: vec![vec![a.id()], vec![b.id()], vec![tmp]],
                     });
                 }
                 DslIr::AddEFFI(a, b, c) => {
                     let tmp = self.alloc_e(&mut constraints, c);
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::AddEFFI,
+                        opcode: ConstraintOpcode::AddEF,
                         args: vec![vec![a.id()], vec![tmp], vec![b.id()]],
                     });
                 }
@@ -175,28 +175,24 @@ impl<C: Config + Debug> ConstraintCompiler<C> {
                 DslIr::SubEI(a, b, c) => {
                     let tmp = self.alloc_e(&mut constraints, c);
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::SubEI,
+                        opcode: ConstraintOpcode::SubE,
                         args: vec![vec![a.id()], vec![b.id()], vec![tmp]],
                     });
                 }
                 DslIr::SubVIN(a, b, c) => {
                     let tmp = self.alloc_v(&mut constraints, b);
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::SubVIN,
-                        args: vec![vec![a.id()], vec![tmp], vec![c.id()]],
-                    });
-                },
-                DslIr::SubEIN(a, b, c) => {
-                    let tmp = self.alloc_e(&mut constraints, b);
-                    constraints.push(Constraint {
-                        opcode: ConstraintOpcode::SubEIN,
+                        opcode: ConstraintOpcode::SubV,
                         args: vec![vec![a.id()], vec![tmp], vec![c.id()]],
                     });
                 }
-                DslIr::SubEFI(a, b, c) => {
-                    let tmp = self
-                },
-
+                DslIr::SubEIN(a, b, c) => {
+                    let tmp = self.alloc_e(&mut constraints, b);
+                    constraints.push(Constraint {
+                        opcode: ConstraintOpcode::SubE,
+                        args: vec![vec![a.id()], vec![tmp], vec![c.id()]],
+                    });
+                }
                 DslIr::MulV(a, b, c) => constraints.push(Constraint {
                     opcode: ConstraintOpcode::MulV,
                     args: vec![vec![a.id()], vec![b.id()], vec![c.id()]],
@@ -212,6 +208,13 @@ impl<C: Config + Debug> ConstraintCompiler<C> {
                     opcode: ConstraintOpcode::MulF,
                     args: vec![vec![a.id()], vec![b.id()], vec![c.id()]],
                 }),
+                DslIr::MulFI(a, b, c) => {
+                    let tmp = self.alloc_f(&mut constraints, c);
+                    constraints.push(Constraint {
+                        opcode: ConstraintOpcode::MulF,
+                        args: vec![vec![a.id()], vec![b.id()], vec![tmp]],
+                    });
+                }
                 DslIr::MulE(a, b, c) => constraints.push(Constraint {
                     opcode: ConstraintOpcode::MulE,
                     args: vec![vec![a.id()], vec![b.id()], vec![c.id()]],
@@ -225,6 +228,10 @@ impl<C: Config + Debug> ConstraintCompiler<C> {
                 }
                 DslIr::MulEF(a, b, c) => constraints.push(Constraint {
                     opcode: ConstraintOpcode::MulEF,
+                    args: vec![vec![a.id()], vec![b.id()], vec![c.id()]],
+                }),
+                DslIr::DivF(a, b, c) => constraints.push(Constraint {
+                    opcode: ConstraintOpcode::DivF,
                     args: vec![vec![a.id()], vec![b.id()], vec![c.id()]],
                 }),
                 DslIr::DivFIN(a, b, c) => {
@@ -249,35 +256,43 @@ impl<C: Config + Debug> ConstraintCompiler<C> {
                     opcode: ConstraintOpcode::NegE,
                     args: vec![vec![a.id()], vec![b.id()]],
                 }),
+                DslIr::CastFV(a, b) => constraints.push(Constraint {
+                    opcode: ConstraintOpcode::CastFV,
+                    args: vec![vec![a.id()], vec![b.id()]],
+                }),
                 DslIr::CircuitNum2BitsF(value, output) => constraints.push(Constraint {
-                    opcode: ConstraintOpcode::Num2BitsF,
+                    opcode: ConstraintOpcode::CircuitNum2BitsF,
                     args: vec![output.iter().map(|x| x.id()).collect(), vec![value.id()]],
                 }),
+                DslIr::CircuitVarTo64BitsF(value, output) => constraints.push(Constraint {
+                    opcode: ConstraintOpcode::CircuitVarTo64BitsF,
+                    args: vec![vec![value.id()], output.iter().map(|x| x.id()).collect()],
+                }),
                 DslIr::CircuitPoseidon2Permute(state) => constraints.push(Constraint {
-                    opcode: ConstraintOpcode::Permute,
+                    opcode: ConstraintOpcode::CircuitPoseidon2Permute,
                     args: state.iter().map(|x| vec![x.id()]).collect(),
                 }),
                 DslIr::CircuitSelectV(cond, a, b, out) => {
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::SelectV,
+                        opcode: ConstraintOpcode::CircuitSelectV,
                         args: vec![vec![out.id()], vec![cond.id()], vec![a.id()], vec![b.id()]],
                     });
                 }
                 DslIr::CircuitSelectF(cond, a, b, out) => {
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::SelectF,
+                        opcode: ConstraintOpcode::CircuitSelectF,
                         args: vec![vec![out.id()], vec![cond.id()], vec![a.id()], vec![b.id()]],
                     });
                 }
                 DslIr::CircuitSelectE(cond, a, b, out) => {
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::SelectE,
+                        opcode: ConstraintOpcode::CircuitSelectE,
                         args: vec![vec![out.id()], vec![cond.id()], vec![a.id()], vec![b.id()]],
                     });
                 }
                 DslIr::CircuitExt2Felt(a, b) => {
                     constraints.push(Constraint {
-                        opcode: ConstraintOpcode::Ext2Felt,
+                        opcode: ConstraintOpcode::CircuitExt2Felt,
                         args: vec![
                             vec![a[0].id()],
                             vec![a[1].id()],
@@ -333,15 +348,15 @@ impl<C: Config + Debug> ConstraintCompiler<C> {
                     args: vec![vec![a.id()]],
                 }),
                 DslIr::WitnessVar(a, b) => constraints.push(Constraint {
-                    opcode: ConstraintOpcode::WitnessV,
+                    opcode: ConstraintOpcode::WitnessVar,
                     args: vec![vec![a.id()], vec![b.to_string()]],
                 }),
                 DslIr::WitnessFelt(a, b) => constraints.push(Constraint {
-                    opcode: ConstraintOpcode::WitnessF,
+                    opcode: ConstraintOpcode::WitnessFelt,
                     args: vec![vec![a.id()], vec![b.to_string()]],
                 }),
                 DslIr::WitnessExt(a, b) => constraints.push(Constraint {
-                    opcode: ConstraintOpcode::WitnessE,
+                    opcode: ConstraintOpcode::WitnessExt,
                     args: vec![vec![a.id()], vec![b.to_string()]],
                 }),
                 DslIr::CircuitFelts2Ext(a, b) => constraints.push(Constraint {
@@ -354,8 +369,21 @@ impl<C: Config + Debug> ConstraintCompiler<C> {
                         vec![a[3].id()],
                     ],
                 }),
+                DslIr::CircuitFeltReduce(a) => constraints.push(Constraint {
+                    opcode: ConstraintOpcode::CircuitFeltReduce,
+                    args: vec![vec![a.id()]],
+                }),
+                DslIr::CircuitExtReduce(a) => constraints.push(Constraint {
+                    opcode: ConstraintOpcode::CircuitExtReduce,
+                    args: vec![vec![a.id()]],
+                }),
+                DslIr::CircuitLessThan(a, b) => constraints.push(Constraint {
+                    opcode: ConstraintOpcode::CircuitLessThan,
+                    args: vec![vec![a.id()], vec![b.id()]],
+                }),
                 DslIr::CycleTrackerStart(..) => {},
-                DslIr::CycleTrackerEnd(..) => {}
+                DslIr::CycleTrackerEnd(..) => {},
+                DslIr::CircuitPublish(..) => {},
                 _ => panic!("unsupported {:?}", instruction),
             };
         }
